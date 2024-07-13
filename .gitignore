@@ -1,6 +1,10 @@
 # Virtual environment
 venv/
 
+data/
+
+data/**
+
 # Python compiled files
 __pycache__/
 *.pyc
@@ -109,3 +113,6 @@ maildir
 .pytest_cache
 
 app/model/**
+
+data/**
+/data
