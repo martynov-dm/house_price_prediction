@@ -21,3 +21,7 @@ coverage.xml
 .pytest_cache
 .hypothesis
 .idea
+
+node_modules
+build
+npm-debug.log
