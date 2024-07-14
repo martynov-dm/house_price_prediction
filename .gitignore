@@ -113,6 +113,3 @@ maildir
 .pytest_cache
 
 app/model/**
-
-data/**
-/data
