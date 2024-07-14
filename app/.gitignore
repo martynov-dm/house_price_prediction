@@ -1,2 +1,6 @@
 /app/model/** 
-model
+model/**
+model/msk/**
+model/ru/**
+
+model/msk/**

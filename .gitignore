@@ -112,4 +112,11 @@ target/
 maildir
 .pytest_cache
 
+app/model
+
 app/model/**
+
+current_run
+
+app/model/msk
+app/model/ru
