@@ -1,7 +1,58 @@
 artifacts:
-  ru_price_predictor:
-    path: app/model
+  data:
+    path: data
+    type: dataset
+    desc: Datasets
+  model_msk:
+    path: models/msk
+    desc: Housing prices prediction for msk
     type: model
     labels:
-    - auto_gluon
+    - msk
+    - AutoGluon
+  model_ru:
+    path: models/ru
+    desc: Housing prices prediction for whole Russia
+    type: model
+    labels:
     - ru
+    - AutoGluon
+
+stages:
+  prepare_msk:
+    cmd: python src/prepare_msk.py
+    deps:
+    - data/additional_data
+    - data/avito_data
+    - src/prepare_msk.py
+    outs:
+    - data/prepared
+
+  # prepare_msk:
+  #   cmd: python src/prepare_msk.py
+  #   deps:
+  #   - data/additional_data
+  #   - data/avito_data
+  #   - src/prepare_msk.py
+  #   outs:
+  #   - data/prepared
+
+  # train_msk:
+  #   cmd: python src/train_msk.py data/features_msk models/msk
+  #   deps:
+  #   - data/features_msk
+  #   - src/train_msk.py
+  #   params:
+  #   - train_msk.hyperparameters
+  #   outs:
+  #   - models/msk
+
+  # train_ru:
+  #   cmd: python src/train_ru.py data/features_ru models/ru
+  #   deps:
+  #   - data/features_ru
+  #   - src/train_ru.py
+  #   params:
+  #   - train_ru.hyperparameters
+  #   outs:
+  #   - models/ru

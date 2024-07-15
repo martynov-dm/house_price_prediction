@@ -1,12 +1,13 @@
 # Virtual environment
 venv/
 
-data/
+models/ru/**
+models/msk/**
+
+
 
 app/model/
 
-
-data/**
 
 # Python compiled files
 __pycache__/
@@ -115,11 +116,7 @@ target/
 maildir
 .pytest_cache
 
-app/model
 
-app/model/**
 
 current_run
 
-app/model/msk
-app/model/ru
