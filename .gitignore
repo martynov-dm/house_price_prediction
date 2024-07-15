@@ -3,6 +3,9 @@ venv/
 
 data/
 
+app/model/
+
+
 data/**
 
 # Python compiled files
