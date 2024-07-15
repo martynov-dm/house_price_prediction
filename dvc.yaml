@@ -1,0 +1,7 @@
+artifacts:
+  ru_price_predictor:
+    path: app/model/ru/
+    type: model
+    labels:
+    - auto_gluon
+    - ru
