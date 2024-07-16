@@ -1,2 +1,27 @@
-prepare:
-  
+base:
+  random_seed: 42
+
+prepare_msk:
+  test_size: 0.2
+  validation_size: 0.1
+
+prepare_ru:
+  test_size: 0.2
+  validation_size: 0.1
+
+train_ru:
+  time_limit: 3600  # in seconds
+  presets: ['best_quality', 'optimize_for_deployment']
+
+train_msk:
+  time_limit: 3600  # in seconds
+  presets: ['best_quality', 'optimize_for_deployment']
+
+evaluate:
+  metrics: 
+    - 'root_mean_squared_error'
+    - 'mean_absolute_error'
+    - 'r2'
+    - 'mean_absolute_percentage_error' 
+  plot_residuals: true
+  plot_perfect_predictions: true

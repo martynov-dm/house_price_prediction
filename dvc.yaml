@@ -20,39 +20,93 @@ artifacts:
 
 stages:
   prepare_msk:
-    cmd: python src/prepare_msk.py
+    cmd: python src/prepare_msk.py ${prepare_msk.test_size} ${prepare_msk.validation_size}
     deps:
     - data/additional_data
     - data/avito_data
     - src/prepare_msk.py
+    params:
+    - prepare_msk.test_size
+    - prepare_msk.validation_size
     outs:
-    - data/prepared
+    - data/prepared/msk
 
-  # prepare_msk:
-  #   cmd: python src/prepare_msk.py
-  #   deps:
-  #   - data/additional_data
-  #   - data/avito_data
-  #   - src/prepare_msk.py
-  #   outs:
-  #   - data/prepared
+  prepare_ru:
+    cmd: python src/prepare_ru.py ${prepare_ru.test_size} ${prepare_ru.validation_size}
+    deps:
+    - data/additional_data
+    - data/avito_data
+    - src/prepare_ru.py
+    params:
+    - prepare_ru.test_size
+    - prepare_ru.validation_size
+    outs:
+    - data/prepared/ru
 
-  # train_msk:
-  #   cmd: python src/train_msk.py data/features_msk models/msk
-  #   deps:
-  #   - data/features_msk
-  #   - src/train_msk.py
-  #   params:
-  #   - train_msk.hyperparameters
-  #   outs:
-  #   - models/msk
+  train_msk:
+    cmd: python src/train.py data/prepared/msk/msk_prepared.csv models/msk msk ${train_msk.time_limit} ${train_msk.presets}
+    deps:
+    - data/prepared/msk/msk_prepared.csv
+    - src/train.py
+    params:
+    - train_msk.time_limit
+    - train_msk.presets
+    outs:
+    - models/msk
 
-  # train_ru:
-  #   cmd: python src/train_ru.py data/features_ru models/ru
-  #   deps:
-  #   - data/features_ru
-  #   - src/train_ru.py
-  #   params:
-  #   - train_ru.hyperparameters
-  #   outs:
-  #   - models/ru
+  train_ru:
+    cmd: python src/train.py data/prepared/ru/ru_prepared.csv models/ru ru ${train_ru.time_limit} ${train_ru.presets}
+    deps:
+    - data/prepared/ru/ru_prepared.csv
+    - src/train.py
+    params:
+    - train_ru.time_limit
+    - train_ru.presets
+    outs:
+    - models/ru
+
+  evaluate_msk:
+    cmd: >
+      python src/evaluate.py 
+      data/prepared/msk/msk_prepared.csv 
+      models/msk 
+      msk 
+      ${evaluate.metrics} 
+      ${evaluate.plot_residuals} 
+      ${evaluate.plot_perfect_predictions}
+    deps:
+    - data/prepared/msk/msk_prepared.csv
+    - models/msk
+    - src/evaluate.py
+    params:
+    - evaluate.metrics
+    - evaluate.plot_residuals
+    - evaluate.plot_perfect_predictions
+    outs:
+    - metrics/msk_metrics.json:
+        cache: false
+    - plots/msk:
+        cache: false
+
+  evaluate_ru:
+    cmd: >
+      python src/evaluate.py 
+      data/prepared/ru/ru_prepared.csv 
+      models/ru 
+      ru 
+      ${evaluate.metrics} 
+      ${evaluate.plot_residuals} 
+      ${evaluate.plot_perfect_predictions}
+    deps:
+    - data/prepared/ru/ru_prepared.csv
+    - models/ru
+    - src/evaluate.py
+    params:
+    - evaluate.metrics
+    - evaluate.plot_residuals
+    - evaluate.plot_perfect_predictions
+    outs:
+    - metrics/ru_metrics.json:
+        cache: false
+    - plots/ru:
+        cache: false

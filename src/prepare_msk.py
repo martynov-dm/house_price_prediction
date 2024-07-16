@@ -554,7 +554,7 @@ cat_cols_msk = ['Город']
 df_working_msk[cat_cols_msk] = df_working_msk[cat_cols_msk].astype('category')
 
 
-output_dir = script_dir.parent / 'data' / 'prepared'
+output_dir = script_dir.parent / 'data' / 'prepared' / 'msk'
 output_dir.mkdir(parents=True, exist_ok=True)
 
 # Save the processed data

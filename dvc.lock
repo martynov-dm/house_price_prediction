@@ -10,16 +10,73 @@ stages:
       nfiles: 2
     - path: data/avito_data
       hash: md5
-      md5: 853e69799a8594df8ed47eb82ef4d097.dir
+      md5: c04d6b3157735304bd7744ccd77f16f2.dir
       size: 453120672
       nfiles: 33
     - path: src/prepare_msk.py
       hash: md5
-      md5: 62547c967097d6315890279d73df3a84
-      size: 23706
+      md5: e8eed6c29a5734588be44090104c0e9e
+      size: 23714
     outs:
-    - path: data/prepared
+    - path: data/prepared/msk
       hash: md5
       md5: bca04ad34cd3f819f24f29f00f421b51.dir
       size: 908215
       nfiles: 1
+  prepare_ru:
+    cmd: python src/prepare_ru.py
+    deps:
+    - path: data/additional_data
+      hash: md5
+      md5: 61e71f211c48c21ab5c220bfccaf1232.dir
+      size: 8092515
+      nfiles: 2
+    - path: data/avito_data
+      hash: md5
+      md5: c04d6b3157735304bd7744ccd77f16f2.dir
+      size: 453120672
+      nfiles: 33
+    - path: src/prepare_ru.py
+      hash: md5
+      md5: 378d9fdd44d0f529403464efd0adc0fd
+      size: 24181
+    outs:
+    - path: data/prepared/ru
+      hash: md5
+      md5: f033779bed51f69197ab7924fdb32c60.dir
+      size: 15596799
+      nfiles: 1
+  train_msk:
+    cmd: python src/train.py data/prepared/msk/msk_prepared.csv models/msk msk
+    deps:
+    - path: data/prepared/msk/msk_prepared.csv
+      hash: md5
+      md5: 262c4dea79bc32035715ba38d8ea77fa
+      size: 908215
+    - path: src/train.py
+      hash: md5
+      md5: 37cbd9c43f1221865268a18497e522eb
+      size: 3033
+    outs:
+    - path: models/msk
+      hash: md5
+      md5: f5f273de3427826330ab9a1a46592e0e.dir
+      size: 216143736
+      nfiles: 34
+  train_ru:
+    cmd: python src/train.py data/prepared/ru/ru_prepared.csv models/ru ru
+    deps:
+    - path: data/prepared/ru/ru_prepared.csv
+      hash: md5
+      md5: b576fe4391b370302914ddd7371f7b65
+      size: 15596799
+    - path: src/train.py
+      hash: md5
+      md5: 37cbd9c43f1221865268a18497e522eb
+      size: 3033
+    outs:
+    - path: models/ru
+      hash: md5
+      md5: 25b7851baa57300dff1086a2a668d49a.dir
+      size: 953491910
+      nfiles: 34
