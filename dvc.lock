@@ -10,16 +10,103 @@ stages:
       nfiles: 2
     - path: data/avito_data
       hash: md5
-      md5: 853e69799a8594df8ed47eb82ef4d097.dir
+      md5: c04d6b3157735304bd7744ccd77f16f2.dir
       size: 453120672
       nfiles: 33
     - path: src/prepare_msk.py
       hash: md5
-      md5: 62547c967097d6315890279d73df3a84
-      size: 23706
+      md5: 89143df67eb904e17bf69623ba3ba9b6
+      size: 24159
+    params:
+      params.yaml:
+        prepare_msk:
+          random_seed: 42
+          test_size: 0.2
     outs:
-    - path: data/prepared
+    - path: data/prepared/msk
       hash: md5
-      md5: bca04ad34cd3f819f24f29f00f421b51.dir
-      size: 908215
-      nfiles: 1
+      md5: 40bcd6269601b5a520c4f81992f50739.dir
+      size: 909287
+      nfiles: 2
+  prepare_ru:
+    cmd: python src/prepare_ru.py
+    deps:
+    - path: data/additional_data
+      hash: md5
+      md5: 61e71f211c48c21ab5c220bfccaf1232.dir
+      size: 8092515
+      nfiles: 2
+    - path: data/avito_data
+      hash: md5
+      md5: c04d6b3157735304bd7744ccd77f16f2.dir
+      size: 453120672
+      nfiles: 33
+    - path: src/prepare_ru.py
+      hash: md5
+      md5: 0d6344ed78892e15acc11a222106bbf2
+      size: 24599
+    params:
+      params.yaml:
+        prepare_ru:
+          random_seed: 42
+          test_size: 0.2
+    outs:
+    - path: data/prepared/ru
+      hash: md5
+      md5: d8e229443837f7fc9bde006cd13b13de.dir
+      size: 15598011
+      nfiles: 2
+  train_msk:
+    cmd: python src/train.py msk
+    deps:
+    - path: data/prepared/msk/test.csv
+      hash: md5
+      md5: 9ec3427f49002f690fea843591a9d422
+      size: 182262
+    - path: data/prepared/msk/train.csv
+      hash: md5
+      md5: 805c3fe27bdda74aeb2d00ae350f37df
+      size: 727025
+    - path: src/train.py
+      hash: md5
+      md5: ccc15fadea9bff3b8cd483e9ca1e57e8
+      size: 3739
+    params:
+      params.yaml:
+        train_msk:
+          presets:
+          - good_quality
+          - optimize_for_deployment
+    outs:
+    - path: models/msk
+      hash: md5
+      md5: 85ee24842be3c4355166f45e22fcaa2f.dir
+      size: 326694808
+      nfiles: 48
+  train_ru:
+    cmd: python src/train.py ru
+    deps:
+    - path: data/prepared/ru/test.csv
+      hash: md5
+      md5: 9ccc064241ca897baf6dac2bd1c46654
+      size: 3120831
+    - path: data/prepared/ru/train.csv
+      hash: md5
+      md5: 99b28fb3f569033da0aad3418b628894
+      size: 12477180
+    - path: src/train.py
+      hash: md5
+      md5: ccc15fadea9bff3b8cd483e9ca1e57e8
+      size: 3739
+    params:
+      params.yaml:
+        train_ru:
+          presets:
+          - good_quality
+          - optimize_for_deployment
+    outs:
+    - path: models/ru
+      hash: md5
+      md5: a9472889dd6cad10eaad82ec5576c553.dir
+      size: 891650051
+      nfiles: 28

@@ -1,2 +1,22 @@
-prepare:
-  
+prepare_msk:
+  random_seed: 42
+  test_size: 0.2
+
+prepare_ru:
+  random_seed: 42
+  test_size: 0.2
+
+train_ru:
+  presets: ['good_quality', 'optimize_for_deployment']
+
+train_msk:
+  presets: ['good_quality', 'optimize_for_deployment']
+
+evaluate:
+  metrics: 
+    - 'root_mean_squared_error'
+    - 'mean_absolute_error'
+    - 'r2'
+    - 'mean_absolute_percentage_error' 
+  plot_residuals: true
+  plot_perfect_predictions: true

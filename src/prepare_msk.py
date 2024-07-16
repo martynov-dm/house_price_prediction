@@ -4,6 +4,9 @@ import numpy as np
 from datetime import datetime
 import re
 import os
+from sklearn.model_selection import train_test_split
+from box import ConfigBox
+from ruamel.yaml import YAML
 
 # Print current working directory
 print(f"Current working directory: {os.getcwd()}")
@@ -554,8 +557,20 @@ cat_cols_msk = ['Город']
 df_working_msk[cat_cols_msk] = df_working_msk[cat_cols_msk].astype('category')
 
 
-output_dir = script_dir.parent / 'data' / 'prepared'
+output_dir = script_dir.parent / 'data' / 'prepared' / 'msk'
 output_dir.mkdir(parents=True, exist_ok=True)
 
+
+yaml = YAML(typ="safe")
+params = ConfigBox(yaml.load(open("params.yaml", encoding="utf-8")))
+
+random_seed = params.prepare_msk.random_seed
+test_size = params.prepare_msk.test_size
+
+train_data, test_data = train_test_split(
+    df_working_msk, test_size=test_size, random_state=random_seed)
+
 # Save the processed data
-df_working_msk.to_csv(output_dir / 'msk_prepared.csv', index=False)
+train_data.to_csv(output_dir / 'train.csv', index=False)
+test_data.to_csv(output_dir / 'test.csv', index=False)
+
