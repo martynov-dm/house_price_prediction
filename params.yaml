@@ -7,10 +7,12 @@ prepare_ru:
   test_size: 0.2
 
 train_ru:
-  presets: ['good_quality', 'optimize_for_deployment']
+  presets: ['medium_quality', 'optimize_for_deployment']
+  time_limit: 900
 
 train_msk:
-  presets: ['good_quality', 'optimize_for_deployment']
+  presets: ['medium_quality', 'optimize_for_deployment']
+  time_limit: 900
 
 evaluate:
   metrics: 

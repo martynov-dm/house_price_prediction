@@ -3,21 +3,6 @@ artifacts:
     path: data
     type: dataset
     desc: Datasets
-  model_msk:
-    path: models/msk
-    desc: Housing prices prediction for msk
-    type: model
-    labels:
-    - msk
-    - AutoGluon
-  model_ru:
-    path: models/ru
-    desc: Housing prices prediction for whole Russia
-    type: model
-    labels:
-    - ru
-    - AutoGluon
-
   msk:
     path: models/msk
     type: model
@@ -43,7 +28,6 @@ stages:
     - prepare_msk
     outs:
     - data/prepared/msk
-
   prepare_ru:
     cmd: python src/prepare_ru.py
     deps:
@@ -65,7 +49,6 @@ stages:
     - train_msk
     outs:
     - models/msk
-
   train_ru:
     cmd: python src/train.py ru
     deps:
@@ -76,6 +59,7 @@ stages:
     - train_ru
     outs:
     - models/ru
+
 params:
 - dvclive/params.yaml
 metrics:

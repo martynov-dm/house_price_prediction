@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-def train_model(model_type, presets):
+def train_model(model_type, presets, time_limit):
     script_dir = Path(__file__).parent.absolute()
 
     train_csv_path = script_dir.parent / 'data' / \
@@ -46,10 +46,18 @@ def train_model(model_type, presets):
         live.log_param("presets", presets[0])
 
         autogluon_automl = TabularPredictor(**model_params)
-        auto_ml_pipeline_feature_generator = AutoMLPipelineFeatureGenerator()
+        auto_ml_pipeline_feature_generator = AutoMLPipelineFeatureGenerator(
+            enable_numeric_features=True,
+            enable_categorical_features=True,
+            enable_datetime_features=True,
+            enable_text_special_features=False,
+            enable_text_ngram_features=False,
+            enable_raw_text_features=False,
+            enable_vision_features=False,
+        )
 
         autogluon_automl.fit(
-            train_data=train_data, feature_generator=auto_ml_pipeline_feature_generator, presets=presets)
+            train_data=train_data, feature_generator=auto_ml_pipeline_feature_generator, presets=presets, time_limit=time_limit,)
 
         evaluation_results = autogluon_automl.evaluate(test_data)
         logging.info(f"Evaluation results for {model_type} model:")
@@ -101,15 +109,17 @@ if __name__ == "__main__":
     if model_type == 'msk':
         logging.info("Training Moscow model")
         presets = params.train_msk.presets
+        time_limit = params.train_msk.time_limit
     elif model_type == 'ru':
         logging.info("Training RU model")
         presets = params.train_ru.presets
+        time_limit = params.train_ru.time_limit
     else:
         logging.error(f"Invalid model type: {model_type}")
         sys.exit(1)
 
     try:
-        train_model(model_type, presets)
+        train_model(model_type, presets, time_limit)
     except Exception as e:
         logging.error(f"Script failed with error: {str(e)}")
         traceback.print_exc()
