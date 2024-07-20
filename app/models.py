@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from enum import Enum
-from typing import List, TypedDict
+from typing import TypedDict
 
 
 class WallMaterial(str, Enum):
@@ -22,25 +22,11 @@ class Renovation(str, Enum):
     needs_renovation = "требует ремонта"
 
 
-class AgeCategory(str, Enum):
-    new = "New (0-5 years)"
-    recent = "Recent (5-10 years)"
-    modern = "Modern (10-20 years)"
-    established = "Established (20-40 years)"
-    old = "Old (40+ years)"
-
-
-class DistanceToCenter(str, Enum):
-    close = "Близко к городу"
-    far = "Далеко от города"
-    no_data = "Нет данных"
-
-
 class BaseInput(BaseModel):
     house_area: float = Field(..., description="Площадь дома")
     land_area: float = Field(..., description="Площадь участка")
     bathrooms: int = Field(..., description="Количество санузлов")
-    wall_materials: List[WallMaterial] = Field(
+    wall_material: WallMaterial = Field(
         ..., description="Материалы стен")
     floors: int = Field(..., description="Количество этажей")
     has_sauna: bool = Field(..., description="Наличие бани")
@@ -66,9 +52,7 @@ class BaseInput(BaseModel):
                                        description="Наличие общественного транспорта")
     has_railway: bool = Field(...,
                               description="Наличие железнодорожного сообщения")
-    house_age: int = Field(..., description="Возраст дома")
-    age_category: AgeCategory = Field(...,
-                                      description="Категория возраста дома")
+    construction_year: int = Field(..., description="Год постройки")
     has_electricity: bool = Field(..., description="Наличие электричества")
     has_gas: bool = Field(..., description="Наличие газа")
     has_heating: bool = Field(..., description="Наличие отопления")
@@ -78,7 +62,7 @@ class BaseInput(BaseModel):
 
 
 class RuInput(BaseInput):
-    distance_to_center: DistanceToCenter = Field(
+    distance_to_center: float = Field(
         ..., description="Расстояние до центра")
 
 

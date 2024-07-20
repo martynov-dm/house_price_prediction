@@ -1,14 +1,11 @@
 from pathlib import Path
 import pandas as pd
-import numpy as np
-from datetime import datetime
-import re
 import os
 from sklearn.model_selection import train_test_split
 from box import ConfigBox
 from ruamel.yaml import YAML
 
-from prepare_func import encode_amenities, encode_as_float, encode_infrastructure, encode_mortgage, encode_parking, encode_repair, encode_rooms, encode_terrace, encode_toilet, encode_transport, encode_tv_wifi, encode_utilities, encode_wall_material, process_floors, process_prices, process_year, remove_outliers, remove_unused
+from prepare_func import encode_amenities, encode_as_float, encode_infrastructure, encode_mortgage, encode_parking, encode_repair, encode_rooms, encode_terrace, encode_toilet, encode_transport, encode_tv_wifi, encode_utilities, encode_wall_material, process_floors, process_prices, process_year, remove_outliers, remove_unused, rename_columns
 
 # Print current working directory
 print(f"Current working directory: {os.getcwd()}")
@@ -71,6 +68,7 @@ def process_dataframe(df):
     df = process_year(df)
     df = encode_utilities(df)
     df = process_floors(df)
+    df = rename_columns(df)
     return df
 
 
@@ -101,4 +99,3 @@ train_data, test_data = train_test_split(
 # Save the processed data
 train_data.to_csv(output_dir / 'train.csv', index=False)
 test_data.to_csv(output_dir / 'test.csv', index=False)
-

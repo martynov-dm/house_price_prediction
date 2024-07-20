@@ -4,24 +4,23 @@ import os
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-from app.data_transformers import prepare_features_ru
+from app.data_transformers import prepare_features_msk, prepare_features_ru
+from app.predict import predict_price_msk, predict_price_ru
 from .models import RuInput, MskInput
 
 app = FastAPI(root_path="/api")
 
-base_path = "./models"
+current_dir = os.path.abspath(os.getcwd())
 
-# Load the trained AutoGluon models
+base_path = os.path.join(current_dir, "models")
+
 model_path_ru = os.path.join(base_path, "ru")
 model_path_msk = os.path.join(base_path, "msk")
 
-predictor_ru = TabularPredictor.load(model_path_ru)
-predictor_msk = TabularPredictor.load(model_path_msk)
+predictor_ru = TabularPredictor.load(model_path_ru, verbosity=4)
+predictor_msk = TabularPredictor.load(model_path_msk, verbosity=4)
 
-features_msk = predictor_msk.feature_metadata.get_features()
-features_ru = predictor_ru.feature_metadata.get_features()
-print("RU features:", features_ru)
-print("MSK features:", features_msk)
+
 origins = [
     "http://localhost:5173",
 ]
@@ -36,7 +35,7 @@ app.add_middleware(
 
 
 @app.post("/predict/ru")
-async def predict_price_ru(input_data: RuInput):
+async def predict_ru(input_data: RuInput):
 
     ru_features = prepare_features_ru(input_data)
 
@@ -49,7 +48,7 @@ async def predict_price_ru(input_data: RuInput):
 
 
 @app.post("/predict/msk")
-async def predict_price_msk(input_data: MskInput):
+async def predict_msk(input_data: MskInput):
 
     msk_features = prepare_features_msk(input_data)
 

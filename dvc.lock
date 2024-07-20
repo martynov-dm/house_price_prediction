@@ -15,8 +15,8 @@ stages:
       nfiles: 33
     - path: src/prepare_msk.py
       hash: md5
-      md5: 47ebef1b38a1df7f9f0dc68849300275
-      size: 3228
+      md5: 3b7b15448fab414521f986d06cbc04aa
+      size: 3212
     params:
       params.yaml:
         prepare_msk:
@@ -25,8 +25,8 @@ stages:
     outs:
     - path: data/prepared/msk
       hash: md5
-      md5: 1182b028d836605afdbc2dd163783962.dir
-      size: 1085724
+      md5: 596d7b92829afeb3d5f167675721fef5.dir
+      size: 1440860
       nfiles: 2
   prepare_ru:
     cmd: python src/prepare_ru.py
@@ -43,8 +43,8 @@ stages:
       nfiles: 33
     - path: src/prepare_ru.py
       hash: md5
-      md5: 4510a05f556b1b6c8f22602cead2ddff
-      size: 3710
+      md5: 1073218aa3cfebbbc701e002da2bc120
+      size: 3736
     params:
       params.yaml:
         prepare_ru:
@@ -53,62 +53,62 @@ stages:
     outs:
     - path: data/prepared/ru
       hash: md5
-      md5: 5b9cd3dcb466b1b99ead4c2c58fc2766.dir
-      size: 17825244
+      md5: 00f818d99f166737c735b141a7fd4156.dir
+      size: 21479849
       nfiles: 2
   train_msk:
     cmd: python src/train.py msk
     deps:
     - path: data/prepared/msk/test.csv
       hash: md5
-      md5: be4b70b26095ae7d6a0fee17bcb54608
-      size: 217774
+      md5: 8c263ff3800d7f8149ab20472c44fb3b
+      size: 288928
     - path: data/prepared/msk/train.csv
       hash: md5
-      md5: 11e112033073497df9e795a1759f9098
-      size: 867950
+      md5: 8ce0d0feb6dd5cf0cdb25abba2e5a5de
+      size: 1151932
     - path: src/train.py
       hash: md5
-      md5: 4a6b58b6bf3185537bfbef17bf7a461c
-      size: 4204
+      md5: 6049651d051b19069c703864528ad340
+      size: 4341
     params:
       params.yaml:
         train_msk:
           presets:
-          - medium_quality
+          - good_quality
           - optimize_for_deployment
-          time_limit: 900
+          time_limit: 1200
     outs:
     - path: models/msk
       hash: md5
-      md5: ca5ff151f0d7f211a7012f572f28454e.dir
-      size: 117917755
-      nfiles: 13
+      md5: bd9efa5f546cc6a5be28008528a89fed.dir
+      size: 258291171
+      nfiles: 25
   train_ru:
     cmd: python src/train.py ru
     deps:
     - path: data/prepared/ru/test.csv
       hash: md5
-      md5: 08b369218bebe710eea41bf7d72c15b2
-      size: 3566626
+      md5: 84f88219e87c33d07a19734359aa125f
+      size: 4298309
     - path: data/prepared/ru/train.csv
       hash: md5
-      md5: 25731b04ace544c8c56301ad49f8bc99
-      size: 14258618
+      md5: a33bf32a075253303ef7f7f9df999ccf
+      size: 17181540
     - path: src/train.py
       hash: md5
-      md5: 4a6b58b6bf3185537bfbef17bf7a461c
-      size: 4204
+      md5: 6049651d051b19069c703864528ad340
+      size: 4341
     params:
       params.yaml:
         train_ru:
           presets:
-          - medium_quality
+          - good_quality
           - optimize_for_deployment
-          time_limit: 900
+          time_limit: 1200
     outs:
     - path: models/ru
       hash: md5
-      md5: 71b0c3bd8a6b6817d917239267186ba4.dir
-      size: 130055408
-      nfiles: 11
+      md5: 53d6d18b86c2e2d961b7248f64c258bf.dir
+      size: 1142381787
+      nfiles: 27

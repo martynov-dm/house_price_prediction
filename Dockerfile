@@ -1,7 +1,11 @@
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.11
+FROM python:3.9
 
-COPY ./requirements.txt /app/requirements.txt
+WORKDIR /app
 
-RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
+COPY ./requirements.txt /code/requirements.txt
 
-COPY ./app /app/app
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+
+COPY ./app /app
+
+CMD ["fastapi", "run", "main.py", "--port", "80", "--proxy-headers"]

@@ -1,22 +1,6 @@
 version: '3'
 
 services:
-  rabbitmq:
-    image: rabbitmq:3.13.1-management
-    hostname: rabbitmq
-    restart: always
-    environment:
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USERNAME}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
-      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit disk_free_limit 2147483648
-    volumes:
-      - ./rabbitmq:/var/lib/rabbitmq
-    networks:
-      - nginx_network  
-    ports:
-      - 15672:15672
-      - 5672:5672
-
   api:
     build:
       context: .
@@ -25,18 +9,6 @@ services:
       - .env
     ports:
       - 8002:8002
-    networks:
-      - nginx_network
-    depends_on:
-      - rabbitmq
-
-  celery_worker:
-    build:
-      context: .
-      dockerfile: src/Dockerfile
-    env_file:
-      - .env
-    entrypoint: ["poe", "celery"]
     networks:
       - nginx_network
     depends_on:

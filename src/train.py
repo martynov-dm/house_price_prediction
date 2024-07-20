@@ -40,7 +40,7 @@ def train_model(model_type, presets, time_limit):
         'label': 'log_price',
         'problem_type': 'regression',
         'eval_metric': 'mean_squared_error',
-        'verbosity': 3
+        'verbosity': 2
     }
     with Live(save_dvc_exp=True) as live:
         live.log_param("presets", presets[0])
@@ -56,8 +56,15 @@ def train_model(model_type, presets, time_limit):
             enable_vision_features=False,
         )
 
+        kwargs = {
+            'excluded_model_types': ['FASTAI', 'NN_TORCH']}
+
         autogluon_automl.fit(
-            train_data=train_data, feature_generator=auto_ml_pipeline_feature_generator, presets=presets, time_limit=time_limit,)
+            train_data=train_data,
+            feature_generator=auto_ml_pipeline_feature_generator,
+            presets=presets,
+            time_limit=time_limit,
+            **kwargs)
 
         evaluation_results = autogluon_automl.evaluate(test_data)
         logging.info(f"Evaluation results for {model_type} model:")

@@ -100,10 +100,9 @@ def encode_amenities(df):
         for_leisure = str(row['Для отдыха']).lower(
         ) if pd.notna(row['Для отдыха']) else ''
 
-        has_banya = 1 if (
-            'баня' in description or 'баня' in for_leisure or 'сауна' in description or 'сауна' in for_leisure) else 0
-        has_pool = 1 if (
-            'бассейн' in description or 'бассейн' in for_leisure) else 0
+        has_banya = (
+            'баня' in description or 'баня' in for_leisure or 'сауна' in description or 'сауна' in for_leisure)
+        has_pool = ('бассейн' in description or 'бассейн' in for_leisure)
 
         return pd.Series({'Есть_баня': has_banya, 'Есть_бассейн': has_pool})
 
@@ -117,14 +116,11 @@ def encode_infrastructure(df):
         infrastructure = str(row['Инфраструктура']).lower(
         ) if pd.notna(row['Инфраструктура']) else ''
 
-        has_shop = 1 if (
-            'магазин' in description or 'магазин' in infrastructure) else 0
-        has_pharmacy = 1 if (
-            'аптек' in description or 'аптека' in infrastructure) else 0
-        has_kindergarten = 1 if (
-            'детский сад' in description or 'детский сад' in infrastructure) else 0
-        has_school = 1 if (
-            'школ' in description or 'школа' in infrastructure) else 0
+        has_shop = ('магазин' in description or 'магазин' in infrastructure)
+        has_pharmacy = ('аптек' in description or 'аптека' in infrastructure)
+        has_kindergarten = (
+            'детский сад' in description or 'детский сад' in infrastructure)
+        has_school = ('школ' in description or 'школа' in infrastructure)
 
         return pd.Series({'Есть_магазин': has_shop, 'Есть_аптека': has_pharmacy, 'Есть_детский_сад': has_kindergarten, 'Есть_школа': has_school})
 
@@ -139,10 +135,9 @@ def encode_tv_wifi(df):
         tv_wifi = str(row['Интернет/ТВ']
                       ).lower() if pd.notna(row['Интернет/ТВ']) else ''
 
-        has_tv = 1 if (
-            'телевидение' in description or 'телевидение' in tv_wifi) else 0
-        has_wifi = 1 if (
-            'wi-fi' in description or 'wi-fi' in tv_wifi or 'интернет' in description or 'вайфай' in description) else 0
+        has_tv = ('телевидение' in description or 'телевидение' in tv_wifi)
+        has_wifi = (
+            'wi-fi' in description or 'wi-fi' in tv_wifi or 'интернет' in description or 'вайфай' in description)
 
         return pd.Series({'Есть_wifi': has_wifi, 'Есть_tv': has_tv})
 
@@ -163,8 +158,7 @@ def encode_rooms(df):
                 return np.nan
 
     df['Кол-воКомн_encoded'] = df['Кол-воКомн'].apply(_encode)
-    df['Свободная_планировка'] = (
-        df['Кол-воКомн'] == 'Свободная планировка').astype(int)
+    df['Свободная_планировка'] = (df['Кол-воКомн'] == 'Свободная планировка')
     median_rooms = df['Кол-воКомн_encoded'].median()
     df['Кол-воКомн_encoded'] = df['Кол-воКомн_encoded'].fillna(median_rooms)
     return df.drop('Кол-воКомн', axis=1)
@@ -172,7 +166,7 @@ def encode_rooms(df):
 
 def encode_repair(df):
     df = df.dropna(subset=['Ремонт'])
-    repair_dummies = pd.get_dummies(df['Ремонт'], prefix='Ремонт')
+    repair_dummies = pd.get_dummies(df['Ремонт'], prefix='Ремонт', dtype=bool)
     df = pd.concat([df, repair_dummies], axis=1)
     return df.drop('Ремонт', axis=1)
 
@@ -192,9 +186,9 @@ def encode_parking(df):
         parking = str(row['Парковка']).lower(
         ) if pd.notna(row['Парковка']) else ''
 
-        has_parking = 1 if (
-            'парковочное' in description or 'парковочное' in parking or 'парковк' in description) else 0
-        has_garage = 1 if ('гараж' in description or 'гараж' in parking) else 0
+        has_parking = (
+            'парковочное' in description or 'парковочное' in parking or 'парковк' in description)
+        has_garage = ('гараж' in description or 'гараж' in parking)
 
         return pd.Series({'Есть_парковка': has_parking, 'Есть_гараж': has_garage})
 
@@ -206,7 +200,7 @@ def encode_mortgage(df):
     def _encode(row):
         mortgage = str(row['Способ продажи']).lower(
         ) if pd.notna(row['Способ продажи']) else ''
-        mortgage_available = 1 if ('возможна ипотека' in mortgage) else 0
+        mortgage_available = ('возможна ипотека' in mortgage)
         return pd.Series({'Возможна_ипотека': mortgage_available})
 
     df[['Возможна_ипотека']] = df.apply(_encode, axis=1)
@@ -219,8 +213,8 @@ def encode_terrace(df):
         terrace = str(row['Терраса или веранда']).lower(
         ) if pd.notna(row['Терраса или веранда']) else ''
 
-        has_terrace = 1 if (
-            'веранд' in description or 'есть' in terrace or 'террас' in description or 'балкон' in description) else 0
+        has_terrace = (
+            'веранд' in description or 'есть' in terrace or 'террас' in description or 'балкон' in description)
         return pd.Series({'Есть_терраса': has_terrace})
 
     df[['Есть_терраса']] = df.apply(_encode, axis=1)
@@ -233,16 +227,16 @@ def encode_transport(df):
         transport = str(row['Транспортная доступность']).lower(
         ) if pd.notna(row['Транспортная доступность']) else ''
 
-        asphalt = 1 if (
-            'асфальтированная дорога' in transport or 'асфальт' in description) else 0
-        public_transport = 1 if ('остановка общественного транспорта' in transport or
-                                 'автобус' in description or
-                                 'маршрутка' in description or
-                                 'общественный транспорт' in description) else 0
-        railway = 1 if ('железнодорожная станция' in transport or
-                        'жд' in description or
-                        'железнодорожная' in description or
-                        'электричка' in description) else 0
+        asphalt = (
+            'асфальтированная дорога' in transport or 'асфальт' in description)
+        public_transport = ('остановка общественного транспорта' in transport or
+                            'автобус' in description or
+                            'маршрутка' in description or
+                            'общественный транспорт' in description)
+        railway = ('железнодорожная станция' in transport or
+                   'жд' in description or
+                   'железнодорожная' in description or
+                   'электричка' in description)
 
         return pd.Series({
             'Есть_асфальт': asphalt,
@@ -259,18 +253,29 @@ def process_year(df):
     current_year = datetime.now().year
 
     def calculate_age(year):
-        if pd.isna(year):
+        current_year = datetime.now().year
+        if pd.isna(year) or year == 0:
             return np.nan
         try:
-            age = current_year - int(float(year))
-            return max(0, age)  # Ensure age is not negative
+            year = int(float(year))
+            if year > current_year or year < 1800:
+                return np.nan
+            age = current_year - year
+            return max(0, age)
         except ValueError:
             return np.nan
 
     df['ВозрастДома'] = df['ГодПостр'].apply(calculate_age)
+    median_age = df['ВозрастДома'].median()
+    df['ВозрастДома'] = df['ВозрастДома'].fillna(median_age)
+
+    if median_age == 0 or np.isnan(median_age):
+        df['ВозрастДома'] = df['ВозрастДома'].fillna(df['ВозрастДома'].mean())
+        df['ВозрастДома'] = df['ВозрастДома'].fillna(15)
+
+    df.loc[df['ВозрастДома'] > current_year - 1800, 'ВозрастДома'] = np.nan
     df['ВозрастДома'] = df['ВозрастДома'].fillna(df['ВозрастДома'].median())
 
-    # Add categorical age feature
     def categorize_age(age):
         if age < 5:
             return 'New (0-5 years)'
@@ -296,13 +301,10 @@ def encode_utilities(df):
         utils = str(row['Коммуникации']).lower() if pd.notna(
             row['Коммуникации']) else ''
 
-        has_elec = 1 if (
-            'электрич' in description or 'электричество' in utils) else 0
-        has_heat = 1 if (
-            'отопление' in description or 'отопление' in utils) else 0
-        has_gas = 1 if ('газ' in description or 'газ' in utils) else 0
-        has_sew = 1 if (
-            'канализац' in description or 'канализация' in utils) else 0
+        has_elec = ('электрич' in description or 'электричество' in utils)
+        has_heat = ('отопление' in description or 'отопление' in utils)
+        has_gas = ('газ' in description or 'газ' in utils)
+        has_sew = ('канализац' in description or 'канализация' in utils)
 
         return pd.Series({'Есть_электричество': has_elec, 'Есть_отопление': has_heat, 'Есть_газ': has_gas, 'Есть_канализация': has_sew})
 
@@ -471,3 +473,26 @@ def process_floors(df):
     df['Кол-воЭтаж'] = df['Кол-воЭтаж'].fillna(median_floors)
 
     return df
+
+
+def rename_columns(df: pd.DataFrame) -> pd.DataFrame:
+    column_mapping = {
+        'Площ.дома': 'Площ_дома',
+        'Площ.Участка': 'Площ_Участка',
+        'Кол-воЭтаж': 'Кол_воЭтаж',
+        'Расст_центр_Близко к городу': 'Расст_центр_Близко_к_городу',
+        'Расст_центр_Далеко от города': 'Расст_центр_Далеко_от_города',
+        'Расст_центр_Нет данных': 'Расст_центр_Нет_данных',
+        'Кол-воКомн_encoded': 'Кол_воКомн_encoded',
+        'Ремонт_требует ремонта': 'Ремонт_требует_ремонта',
+        'МатериалСтен_железобетонные панели': 'МатериалСтен_железобетонные_панели',
+        'МатериалСтен_сэндвич-панели': 'МатериалСтен_сэндвич_панели',
+        'МатериалСтен_экспериментальные материалы': 'МатериалСтен_экспериментальные_материалы',
+        'Возраст_Established (20-40 years)': 'Возраст_Established_20_40_years',
+        'Возраст_Modern (10-20 years)': 'Возраст_Modern_10_20_years',
+        'Возраст_New (0-5 years)': 'Возраст_New_0_5_years',
+        'Возраст_Old (40+ years)': 'Возраст_Old_40_plus_years',
+        'Возраст_Recent (5-10 years)': 'Возраст_Recent_5_10_years',
+        'Расстояние от МКАД': 'Расстояние_от_МКАД'
+    }
+    return df.rename(columns=column_mapping, errors='ignore')

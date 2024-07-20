@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "types": ["vite/client"],
+    "forceConsistentCasingInFileNames": true,
+    "jsx": "preserve",
+    "baseUrl": "./src",
+    "checkJs": true,
+    "module": "es2020",
+    "moduleResolution": "node",
+    "target": "es2020",
+  },
+}
