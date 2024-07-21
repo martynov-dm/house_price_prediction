@@ -11,6 +11,7 @@ stages:
     - path: data/avito_data
       hash: md5
       md5: c04d6b3157735304bd7744ccd77f16f2.dir
+      md5: c04d6b3157735304bd7744ccd77f16f2.dir
       size: 453120672
       nfiles: 33
     - path: src/prepare_msk.py
