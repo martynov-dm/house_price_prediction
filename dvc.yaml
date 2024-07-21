@@ -1,0 +1,69 @@
+artifacts:
+  data:
+    path: data
+    type: dataset
+    desc: Datasets
+  msk:
+    path: models/msk
+    type: model
+    desc: House price prediction for msk model
+    labels:
+    - AutoGluon
+    - msk
+  ru:
+    path: models/ru
+    type: model
+    desc: House price prediction for ru model
+    labels:
+    - AutoGluon
+    - ru
+stages:
+  prepare_msk:
+    cmd: python src/prepare_msk.py 
+    deps:
+    - data/additional_data
+    - data/avito_data
+    - src/prepare_msk.py
+    params:
+    - prepare_msk
+    outs:
+    - data/prepared/msk
+  prepare_ru:
+    cmd: python src/prepare_ru.py
+    deps:
+    - data/additional_data
+    - data/avito_data
+    - src/prepare_ru.py
+    params:
+    - prepare_ru
+    outs:
+    - data/prepared/ru
+
+  train_msk:
+    cmd: python src/train.py msk
+    deps:
+    - data/prepared/msk/test.csv
+    - data/prepared/msk/train.csv
+    - src/train.py
+    params:
+    - train_msk
+    outs:
+    - models/msk
+  train_ru:
+    cmd: python src/train.py ru
+    deps:
+    - data/prepared/ru/test.csv
+    - data/prepared/ru/train.csv
+    - src/train.py
+    params:
+    - train_ru
+    outs:
+    - models/ru
+
+params:
+- dvclive/params.yaml
+metrics:
+- dvclive/metrics.json
+plots:
+- dvclive/plots/metrics:
+    x: step

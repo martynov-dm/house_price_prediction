@@ -1,0 +1,6 @@
+outs:
+- md5: c04d6b3157735304bd7744ccd77f16f2.dir
+  size: 453120672
+  nfiles: 33
+  hash: md5
+  path: avito_data
