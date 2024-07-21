@@ -19,7 +19,7 @@ artifacts:
     - ru
 stages:
   prepare_msk:
-    cmd: python src/prepare_msk.py 
+    cmd: python src/prepare_msk.py
     deps:
     - data/additional_data
     - data/avito_data
@@ -28,6 +28,7 @@ stages:
     - prepare_msk
     outs:
     - data/prepared/msk
+
   prepare_ru:
     cmd: python src/prepare_ru.py
     deps:
@@ -39,31 +40,40 @@ stages:
     outs:
     - data/prepared/ru
 
-  train_msk:
-    cmd: python src/train.py msk
+  train_models:
+    cmd: python src/train.py
     deps:
-    - data/prepared/msk/test.csv
     - data/prepared/msk/train.csv
+    - data/prepared/msk/test.csv
+    - data/prepared/ru/train.csv
+    - data/prepared/ru/test.csv
     - src/train.py
     params:
     - train_msk
-    outs:
-    - models/msk
-  train_ru:
-    cmd: python src/train.py ru
-    deps:
-    - data/prepared/ru/test.csv
-    - data/prepared/ru/train.csv
-    - src/train.py
-    params:
     - train_ru
     outs:
+    - models/msk
     - models/ru
+    metrics:
+    - dvclive_msk/metrics.json:
+        cache: false
+    - dvclive_ru/metrics.json:
+        cache: false
+    plots:
+    - dvclive_msk/plots:
+        cache: false
+    - dvclive_ru/plots:
+        cache: false
 
 params:
-- dvclive/params.yaml
+- params.yaml
+- dvclive_msk/params.yaml
+- dvclive_ru/params.yaml
 metrics:
-- dvclive/metrics.json
+- dvclive_msk/metrics.json
+- dvclive_ru/metrics.json
 plots:
-- dvclive/plots/metrics:
+- dvclive_msk/plots/metrics:
+    x: step
+- dvclive_ru/plots/metrics:
     x: step

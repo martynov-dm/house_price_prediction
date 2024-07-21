@@ -1,4 +1,3 @@
-import sys
 import pandas as pd
 import logging
 from autogluon.tabular import TabularDataset, TabularPredictor
@@ -21,8 +20,7 @@ def train_model(model_type, presets, time_limit):
 
     train_csv_path = script_dir.parent / 'data' / \
         'prepared' / model_type / 'train.csv'
-    test_csv_path = script_dir.parent / 'data' / \
-        'prepared' / model_type / 'test.csv'
+    test_csv_path = script_dir.parent / 'data' / 'prepared' / model_type / 'test.csv'
     output_model_path = script_dir.parent / 'models' / model_type
 
     if not train_csv_path.exists():
@@ -42,8 +40,11 @@ def train_model(model_type, presets, time_limit):
         'eval_metric': 'mean_squared_error',
         'verbosity': 2
     }
-    with Live(save_dvc_exp=True) as live:
+
+    # Create a unique Live object for each model type
+    with Live(dir=f"dvclive_{model_type}", save_dvc_exp=True) as live:
         live.log_param("presets", presets[0])
+        live.log_param("model_type", model_type)
 
         autogluon_automl = TabularPredictor(**model_params)
         auto_ml_pipeline_feature_generator = AutoMLPipelineFeatureGenerator(
@@ -97,14 +98,7 @@ def train_model(model_type, presets, time_limit):
         live.log_metric("R2", r2)
 
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        logging.error(
-            "Model type not provided. Usage: python train.py <model_type>")
-        sys.exit(1)
-
-    model_type = sys.argv[1]
-
+def main():
     yaml = YAML(typ="safe")
     params_path = Path("params.yaml")
     if not params_path.exists():
@@ -113,20 +107,18 @@ if __name__ == "__main__":
 
     params = ConfigBox(yaml.load(params_path.open(encoding="utf-8")))
 
-    if model_type == 'msk':
-        logging.info("Training Moscow model")
-        presets = params.train_msk.presets
-        time_limit = params.train_msk.time_limit
-    elif model_type == 'ru':
-        logging.info("Training RU model")
-        presets = params.train_ru.presets
-        time_limit = params.train_ru.time_limit
-    else:
-        logging.error(f"Invalid model type: {model_type}")
-        sys.exit(1)
+    # Train MSK model
+    logging.info("Training Moscow model")
+    train_model('msk', params.train_msk.presets, params.train_msk.time_limit)
 
+    # Train RU model
+    logging.info("Training RU model")
+    train_model('ru', params.train_ru.presets, params.train_ru.time_limit)
+
+
+if __name__ == "__main__":
     try:
-        train_model(model_type, presets, time_limit)
+        main()
     except Exception as e:
         logging.error(f"Script failed with error: {str(e)}")
         traceback.print_exc()
