@@ -1,29 +1,27 @@
-version: '3'
+version: "3"
 
 services:
   api:
     build:
       context: .
-      dockerfile: src/Dockerfile
+      dockerfile: ./Dockerfile
     env_file:
       - .env
     ports:
       - 8002:8002
     networks:
       - nginx_network
-    depends_on:
-      - rabbitmq
 
   nginx:
-      build:
-        context: .
-        dockerfile: nginx/Dockerfile
-      ports:
-        - "80:80"
-      networks:
-        - nginx_network
-      depends_on:
-        - api
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    ports:
+      - "80:80"
+    networks:
+      - nginx_network
+    depends_on:
+      - api
 networks:
   nginx_network:
     driver: bridge

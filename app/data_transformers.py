@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, TypedDict
-from app.models import MskFeatures, MskInput, Renovation, RuFeatures, RuInput, WallMaterial
+from app.models import Bathroom, MskFeatures, MskInput, Renovation, RuFeatures, RuInput, WallMaterial
 import pandas as pd
 import re
 
@@ -125,15 +125,28 @@ def encode_city_distance(distance: Optional[float]) -> CityDistanceData:
     )
 
 
+def encode_bathroom(bathroom: Bathroom) -> int:
+    bathroom_lower = str(bathroom).lower()
+
+    if 'на улице' in bathroom_lower and 'в доме' in bathroom_lower:
+        return 2
+    if 'в доме' in bathroom_lower:
+        return 1
+    if 'на улице' in bathroom_lower:
+        return 0
+    else:
+        return 0
+
+
 def prepare_features_ru(input_data: RuInput) -> RuFeatures:
     additional_info = add_additional_info(input_data.city, input_data.region)
     age_data = encode_age_data(input_data.construction_year)
     city_distance_data = encode_city_distance(input_data.distance_to_center)
+    bathroom = encode_bathroom(input_data.bathroom)
 
     features: RuFeatures = {
         "Площ_дома": input_data.house_area,
         "Площ_Участка": input_data.land_area,
-        "Санузел": input_data.bathrooms,
         "Кол_воЭтаж": input_data.floors,
         "Есть_баня": input_data.has_sauna,
         "Есть_бассейн": input_data.has_pool,
@@ -171,21 +184,21 @@ def prepare_features_ru(input_data: RuInput) -> RuFeatures:
         "Есть_канализация": input_data.has_sewerage,
         "Город": input_data.city,
         "Регион": input_data.region,
+        "Санузел": bathroom,
         **age_data,
         **additional_info,
-        **city_distance_data
-
+        **city_distance_data,
     }
     return features
 
 
 def prepare_features_msk(input_data: MskInput) -> MskFeatures:
     age_data = encode_age_data(input_data.construction_year)
+    bathroom = encode_bathroom(input_data.bathroom)
 
     features: MskFeatures = {
         "Площ_дома": input_data.house_area,
         "Площ_Участка": input_data.land_area,
-        "Санузел": input_data.bathrooms,
         "Расстояние_от_МКАД": input_data.distance_to_mkad,
         "Кол_воЭтаж": input_data.floors,
         "Есть_баня": input_data.has_sauna,
@@ -223,6 +236,7 @@ def prepare_features_msk(input_data: MskInput) -> MskFeatures:
         "Есть_отопление": input_data.has_heating,
         "Есть_канализация": input_data.has_sewerage,
         "Город": input_data.city,
+        "Санузел": bathroom,
         **age_data,
     }
     return features

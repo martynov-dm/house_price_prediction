@@ -22,10 +22,16 @@ class Renovation(str, Enum):
     needs_renovation = "требует ремонта"
 
 
+class Bathroom(str, Enum):
+    both = "на улице и в доме"
+    inside = "в доме"
+    outside = "на улице"
+
+
 class BaseInput(BaseModel):
     house_area: float = Field(..., description="Площадь дома")
     land_area: float = Field(..., description="Площадь участка")
-    bathrooms: int = Field(..., description="Количество санузлов")
+    bathroom: Bathroom = Field(..., description="Санузел")
     wall_material: WallMaterial = Field(
         ..., description="Материалы стен")
     floors: int = Field(..., description="Количество этажей")
@@ -58,12 +64,12 @@ class BaseInput(BaseModel):
     has_heating: bool = Field(..., description="Наличие отопления")
     has_sewerage: bool = Field(..., description="Наличие канализации")
     city: str = Field(..., description="Город")
-    region: str = Field(..., description="Регион в формате Оренбургская область/Республика татарстан/Краснодарский край")
 
 
 class RuInput(BaseInput):
     distance_to_center: float = Field(
         ..., description="Расстояние до центра")
+    region: str = Field(..., description="Регион в формате Оренбургская область/Республика татарстан/Краснодарский край")
 
 
 class MskInput(BaseInput):
