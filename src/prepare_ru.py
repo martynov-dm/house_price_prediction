@@ -1,110 +1,171 @@
-from pathlib import Path
 import pandas as pd
-import os
-from box import ConfigBox
-from sklearn.model_selection import train_test_split
-from ruamel.yaml import YAML
+import logging
+import wandb
+from autogluon.tabular import TabularDataset, TabularPredictor
+from autogluon.features.generators import AutoMLPipelineFeatureGenerator
+import traceback
+from pathlib import Path
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import numpy as np
+import sys
+import shutil
 
-from prepare_func import add_district_and_salary, add_population, add_region, encode_amenities, encode_as_float, encode_city_center_distance, encode_infrastructure, encode_mortgage, encode_parking, encode_repair, encode_rooms, encode_terrace, encode_toilet, encode_transport, encode_tv_wifi, encode_utilities, encode_wall_material, process_floors, process_prices, process_year, remove_outliers, remove_unused, rename_columns
+# Set up logging
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Print current working directory
-print(f"Current working directory: {os.getcwd()}")
+# Parameters
+PARAMS = {
+    'msk': {
+        'presets': ['medium_quality', 'optimize_for_deployment'],
+        'time_limit': 900  # 15 minutes
+    },
+    'ru': {
+        'presets': ['medium_quality', 'optimize_for_deployment'],
+        'time_limit': 900  # 15 minutes
+    }
+}
 
-# Use absolute path
-script_dir = Path(__file__).parent.absolute()
-path_ru_ads = script_dir.parent / 'data' / 'avito_data' / 'ru'
 
-print(f"Looking for CSV files in: {path_ru_ads}")
+def evaluate_and_log_metrics(y_true, y_pred, prefix=""):
+    mse = mean_squared_error(y_true, y_pred)
+    rmse = np.sqrt(mse)
+    y_true_exp = np.expm1(y_true)
+    y_pred_exp = np.expm1(y_pred)
+    mae_rub = mean_absolute_error(y_true_exp, y_pred_exp)
+    mape = np.mean(np.abs((y_true_exp - y_pred_exp) / y_true_exp)) * 100
+    r2 = r2_score(y_true, y_pred)
 
-# Check if directory exists
-if not path_ru_ads.exists():
-    raise FileNotFoundError(f"Directory not found: {path_ru_ads}")
+    wandb.log({
+        f"{prefix}RMSE": rmse,
+        f"{prefix}MAE_RUB": mae_rub,
+        f"{prefix}MAPE": mape,
+        f"{prefix}R2": r2
+    })
 
-# Get all CSV files in the 'msk' subdirectory
-files_ru = list(path_ru_ads.glob('*.csv'))
+    return {
+        "RMSE": rmse,
+        "MAE_RUB": mae_rub,
+        "MAPE": mape,
+        "R2": r2
+    }
 
-print(f"Found {len(files_ru)} CSV files")
-for f in files_ru:
-    print(f"  - {f}")
 
-if not files_ru:
-    raise ValueError(f"No CSV files found in {path_ru_ads}")
+def safe_remove_dir(path):
+    if path.exists() and path.is_dir():
+        shutil.rmtree(path)
+        logging.info(f"Removed existing directory: {path}")
 
-dfs_ru = []
-for f in files_ru:
+
+def train_model(model_type, presets, time_limit):
+    script_dir = Path(__file__).parent.absolute()
+
+    train_csv_path = script_dir.parent / 'data' / \
+        'prepared' / model_type / 'train.csv'
+    test_csv_path = script_dir.parent / 'data' / 'prepared' / model_type / 'test.csv'
+    output_model_path = script_dir.parent / 'models' / model_type
+
+    if not train_csv_path.exists():
+        raise FileNotFoundError(
+            f"Prepared data file not found: {train_csv_path}")
+
+    # Remove existing model directory to ensure a clean start
+    safe_remove_dir(output_model_path)
+
+    train_data = pd.read_csv(train_csv_path)
+    test_data = pd.read_csv(test_csv_path)
+
+    train_data = TabularDataset(train_data)
+    test_data = TabularDataset(test_data)
+
+    model_params = {
+        'path': str(output_model_path),
+        'label': 'log_price',
+        'problem_type': 'regression',
+        'eval_metric': 'mean_squared_error',
+        'verbosity': 2
+    }
+
+    # Initialize wandb run
+    with wandb.init(project="house_price_prediction", name=f"{model_type}_model", config={
+        "presets": presets,
+        "model_type": model_type,
+        "time_limit": time_limit
+    }) as run:
+        autogluon_automl = TabularPredictor(**model_params)
+        auto_ml_pipeline_feature_generator = AutoMLPipelineFeatureGenerator(
+            enable_numeric_features=True,
+            enable_categorical_features=True,
+            enable_datetime_features=True,
+            enable_text_special_features=False,
+            enable_text_ngram_features=False,
+            enable_raw_text_features=False,
+            enable_vision_features=False,
+        )
+
+        kwargs = {
+            'excluded_model_types': ['FASTAI', 'NN_TORCH']}
+
+        autogluon_automl.fit(
+            train_data=train_data,
+            feature_generator=auto_ml_pipeline_feature_generator,
+            presets=presets,
+            time_limit=time_limit,
+            **kwargs)
+
+        # Evaluate initial model
+        y_pred = autogluon_automl.predict(test_data)
+        y_true = test_data['log_price']
+        initial_metrics = evaluate_and_log_metrics(
+            y_true, y_pred, prefix="initial_")
+
+        logging.info(f"Initial evaluation results for {model_type} model:")
+        logging.info(initial_metrics)
+
+        # Attempt refit_full
+        try:
+            logging.info(f"Refitting {model_type} model on full dataset...")
+            autogluon_automl.refit_full()
+
+            # Evaluate refitted model
+            y_pred_refit = autogluon_automl.predict(test_data)
+            refit_metrics = evaluate_and_log_metrics(
+                y_true, y_pred_refit, prefix="refit_")
+
+            logging.info(f"Refit evaluation results for {model_type} model:")
+            logging.info(refit_metrics)
+        except Exception as e:
+            logging.error(
+                f"Error during refit_full for {model_type} model: {str(e)}")
+            logging.info("Proceeding with the initial model...")
+
+        # Log model as an artifact
+        model_artifact = wandb.Artifact(
+            name=f"{model_type}_model",
+            type="model",
+            description=f"House price prediction model for {model_type}",
+        )
+        model_artifact.add_dir(str(output_model_path))
+        run.log_artifact(model_artifact)
+
+
+def main():
+    # Login to wandb
+    wandb.login()
+
+    # Train MSK model
+    logging.info("Training Moscow model")
+    train_model('msk', PARAMS['msk']['presets'], PARAMS['msk']['time_limit'])
+
+    # Train RU model
+    logging.info("Training RU model")
+    train_model('ru', PARAMS['ru']['presets'], PARAMS['ru']['time_limit'])
+
+
+if __name__ == "__main__":
     try:
-        data = pd.read_csv(f)
-        dfs_ru.append(data)
+        main()
     except Exception as e:
-        print(f"Error reading file {f}: {e}")
-
-if not dfs_ru:
-    raise ValueError("No data frames created. Check if CSV files are valid.")
-
-df_original_ru = pd.concat(dfs_ru, ignore_index=True)
-df_original_ru = df_original_ru[df_original_ru['Расстояние от МКАД'].isna()]
-df_original_ru = df_original_ru[(df_original_ru['Область'] != 'Московская обл.') &
-                                (df_original_ru['Город'] != 'г. Москва')]
-
-
-df_working_ru = df_original_ru.copy()
-df_working_ru = process_prices(df_working_ru)
-df_working_ru = remove_unused(df_working_ru)
-
-columns_to_encode_ru = ['Площ.дома', 'Площ.Участка']
-df_working_ru = encode_as_float(df_working_ru, columns_to_encode_ru)
-df_working_ru = remove_outliers(df_working_ru, columns_to_encode_ru)
-df_working_ru = encode_toilet(df_working_ru)
-df_working_ru = encode_city_center_distance(df_working_ru)
-
-
-def process_dataframe(df):
-    df = encode_amenities(df)
-    df = encode_infrastructure(df)
-    df = encode_tv_wifi(df)
-    df = encode_rooms(df)
-    df = encode_repair(df)
-    df = encode_wall_material(df)
-    df = encode_parking(df)
-    df = encode_mortgage(df)
-    df = encode_terrace(df)
-    df = encode_transport(df)
-    df = process_year(df)
-    df = encode_utilities(df)
-    df = process_floors(df)
-    df = rename_columns(df)
-
-    return df
-
-
-df_working_ru = process_dataframe(df_working_ru)
-
-df_working_ru = add_region(df_working_ru)
-df_working_ru = add_district_and_salary(df_working_ru)
-df_working_ru = add_population(df_working_ru)
-
-print(df_working_ru.columns)
-
-df_working_ru = df_working_ru.drop(
-    ['Описание', 'Заголовок', 'Расстояние_от_МКАД'], axis=1)
-
-
-cat_cols_ru = ['Город', 'Регион', 'Округ']
-
-df_working_ru[cat_cols_ru] = df_working_ru[cat_cols_ru].astype('category')
-
-output_dir = script_dir.parent / 'data' / 'prepared' / 'ru'
-output_dir.mkdir(parents=True, exist_ok=True)
-
-
-yaml = YAML(typ="safe")
-params = ConfigBox(yaml.load(open("params.yaml", encoding="utf-8")))
-
-random_seed = params.prepare_ru.random_seed
-test_size = params.prepare_ru.test_size
-
-train_data, test_data = train_test_split(
-    df_working_ru, test_size=test_size, random_state=random_seed)
-
-train_data.to_csv(output_dir / 'train.csv', index=False)
-test_data.to_csv(output_dir / 'test.csv', index=False)
+        logging.error(f"Script failed with error: {str(e)}")
+        traceback.print_exc()
+        sys.exit(1)

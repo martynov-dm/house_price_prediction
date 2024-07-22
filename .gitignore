@@ -8,6 +8,7 @@ models/msk/**
 
 app/model/
 
+wandb
 
 # Python compiled files
 __pycache__/
