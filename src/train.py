@@ -16,12 +16,12 @@ logging.basicConfig(level=logging.INFO,
 # Parameters
 PARAMS = {
     'msk': {
-        'presets': ['good_quality',],
-        'time_limit': 2700  # 15 minutes
+        'presets': ['medium_quality', 'optimize_for_deployment'],
+        'time_limit': 1800  # 15 minutes
     },
     'ru': {
-        'presets': ['good_quality',],
-        'time_limit': 2700  # 15 minutes
+        'presets': ['medium_quality',],
+        'time_limit': 1800  # 15 minutes
     }
 }
 
@@ -97,7 +97,6 @@ def train_model(model_type, presets, time_limit):
             presets=presets,
             time_limit=time_limit,
             **kwargs)
-        autogluon_automl.refit_full()
 
         y_pred = autogluon_automl.predict(test_data)
         y_true = test_data['log_price']
